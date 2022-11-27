@@ -1,0 +1,195 @@
+#include <Arduino.h>
+#include <string.h>
+#include <iostream>
+#include <shell.h>
+
+
+
+shell::shell(){
+  __mode__=true;
+  __SesTimeout__=30000;
+  __row__="...digita help...";
+  MaxSerRx=64;
+  __cmd__
+} //costruttore di default
+
+
+
+
+
+/*
+
+  SerSrvMenu -  Serial Communication, get characters from  Serial (USB) Port
+  ------------------------------------------------------------------------
+
+
+  La funzione permette permette di acquisire una stringa digitata da tastiera.
+  I caratteri digitati vengono memorizzati nell'array di carartteri receivedchars[] terminato
+  dal carattere '\0' quando si preme il gtasto return.
+  Per evitare lo sconfinamento dei limiti dell'array ad ogni pressione del tasto si incremnta l'indice 
+  dell'array che quando raggiunge il limite massimo viene decrementato di uno di modo che 
+  nell'ultima posizione ci sia sempre l'ultimo carattere digitato che alla pressione del tasto
+  return viene sostituito dal carattere di escape '\0'.
+
+  Inoltre vi è un controlllo della durata del tempo di acquisiszione con il contatore che viene resettato ad ogni pressione di tasto.
+
+  Infine l'impostazione a true della variabile HideEcho implica che il carattere digitato viene visualizzato
+  con il carattere *.
+
+
+  Ser_Rx()
+  |
+  +---[controllo del timeout]
+  |
+  +---[blocco di lettura]{
+  |
+  +----[blocco di acquisizione]
+
+*/ 
+String shell::read_Rx(boolean HideEcho) {
+
+  unsigned long SessStart = millis();
+  const byte numChars = MaxSerRx;
+  char receivedChars[numChars];   // an array to store the received data
+  boolean newData = false;
+  static byte ndx = 0;
+  char endMarker1 = '\r';         // Some terminal client apps send a CR
+  char endMarker2 = '\n';         // Others just a LF character, therefore we need to check for both
+  char rc;
+
+  Serial.flush();
+
+  
+  while (newData == false) { //blocco di lettura
+
+    // controllo della durata della sessione di lettura
+    if (millis() - SessStart > __SesTimeout__) { // blocco di controllo
+      Serial.print("The session has timed out (");
+      Serial.print(__SesTimeout__ / 1000);
+      Serial.println(" seconds)...");
+      break;
+    } // end of control block
+
+
+    /* Ciclo di acquisizione della stringa. Si esegue fino a quando non si preme return.
+       Ad ogni pressione del tasto si resetta il contatore del timeout.
+       Alla pressione del tasto return */  
+    while ( Serial.available()) {// blocco di acquisizione dei caratteri
+      SessStart = millis();
+      rc =  Serial.read();
+
+      if (rc == endMarker1 || rc == endMarker2) {     // if a CR or LF was received
+        receivedChars[ndx] = '\0';                    // terminate the character array (string)... 
+        ndx = 0;
+        newData = true;
+        char temp =  Serial.read();
+        goto ReturnReceivedString;                    // return everything 
+      }
+      else if (rc == 127) {                           // A DEL character (decimal 127) was received 
+        ndx = ndx - 1;                              // Set the Array-Pointer back to delete the last character
+        Serial.print(rc);                           // Echo del DEL character back that the Terminal Client app 
+      }                                             // removes the last character from the screen
+      else {
+        receivedChars[ndx] = rc;                      // Receive normal characters...
+        ndx++;
+        if (ndx >= numChars) {
+          ndx = numChars - 1;
+        }
+        
+        if (HideEcho == false) {                      // Hide echo if user types in a password...
+          Serial.print(rc);
+        }
+        else {                                        // Normal echo
+          Serial.print("*");
+        }
+      }
+    }// fine del blocco di acquisizione dei caratteri
+    
+  } // fine del blocco di lettura
+
+  
+ ReturnReceivedString:
+  //return receivedChars;
+  return receivedChars;
+
+} // fine della funzione Ser_Rx()
+
+
+/* converte la stringa di arduino in c++ */
+string shell::STR2str(boolean __md__){
+  
+  int len=0;
+  int pos;
+  char rc;
+  String STR;
+  std::string str;
+
+    
+  STR = shell::read_Rx(__md__);
+  len = STR.length();
+  char buffer[len+1];
+  STR.toCharArray(buffer,len+1);
+  
+  pos=0;
+
+  while(buffer[pos] != '\0'){
+    rc=buffer[pos];
+    str=str+rc;
+    pos++;
+  }
+  
+  return str;
+  
+}
+
+
+/* ls */
+void shell::ls(){
+
+
+
+  
+
+  
+
+
+  
+  int iIndex=1; // indice di esplorazione dell'array delle opzioni
+  String sOpt;
+  
+  //controlla se la riga di comando ci sono opzioni  ( string che inizia con il carattere - )
+  //sOpt=shell::parseOpt(sRow);
+  
+  //controlla la riga di comando contiene una path
+  sPath += shell::parsePth(sRow);
+ 
+  iIndex=sPath.length();
+
+  if (sPath.substring(iIndex-1,iIndex)!="/") {
+    sPath +="/";
+  }
+  
+  if (SPIFFS.begin()) {
+
+    // different methods of getting information
+    
+    File root = SPIFFS.open(sPath);
+    File file = root.openNextFile();
+
+    Serial.println();
+    
+    while(file){
+      Serial.print(file.name());
+      Serial.print("\t");Serial.print(file.size());
+      Serial.println();
+      file = root.openNextFile(); 
+    }
+  }
+
+  Serial.println();
+  Serial.print("Total bytes:    "); Serial.println(SPIFFS.totalBytes());
+  Serial.print("Used bytes:     "); Serial.println(SPIFFS.usedBytes());
+  Serial.println();
+
+  
+}
