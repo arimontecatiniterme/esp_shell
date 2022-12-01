@@ -107,7 +107,7 @@ void loop()
   // if (digitalRead(BUTTON)==HIGH) {
 
   std::cout << "shell..."
-            << "\n";
+          << "\n";
   sh.setMode(true);
 
   scmd = sh.row();
