@@ -21,6 +21,7 @@ struct
   string __name__;    // nome dispositivo
   string __cgffile__; // file di configurazione
   int __timeout__;    // valore di timeout
+  boolean bshMode;    // indica che la borda e' in modalita' shell
 } typedef machine;
 
 /* oggetto di tipo string che rappresenta l'input da tastiera */
