@@ -86,7 +86,7 @@ void input::read_Rx() {
         receivedChars[ndx] = '\0';                   // terminate the character array (string)... 
         ndx = 0;
         newData = true;
-        char temp =  Serial.read();
+        //char temp =  Serial.read();
         goto ReturnReceivedString;                   // return everything 
       }
       else if (rc == 127) {  		                         // A DEL character (decimal 127) was received 
@@ -223,7 +223,7 @@ void input::trim()
 /* estrae la path dal comando */
 string input::regS(string sReg){
 
-  int iIndex = 0;
+  //int iIndex = 0;
   std::smatch result;
   string sReturn="";
 

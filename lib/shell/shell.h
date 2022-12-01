@@ -50,7 +50,7 @@ public:
   int         ifup(string);                                                  // attiva la scheda wifi in una delle seguenti modalita' (c - client / a - acces point )
  
   string      grep(string);                                                  // legge il file delle configurazioni e ritora il valore della variabile cercata 
-  string      row();                                                       // attiva l'input del comando
+  string      row();                                                         // attiva l'input del comando
   //-----------------------------------------------------------------------------------------------------------------------------------------------------------------  
 
   

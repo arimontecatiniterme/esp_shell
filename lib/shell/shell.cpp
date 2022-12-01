@@ -95,7 +95,7 @@ string shell::S2s(String STR)
 string shell::trim(const std::string &source)
 {
 
-  std::string s(this.source);
+  std::string s(source);
   s.erase(0, s.find_first_not_of(" "));
   s.erase(s.find_last_not_of(" ") + 1);
   return s;
@@ -115,14 +115,7 @@ string shell::row()
   string sCMD;
   smatch rescmd, resfl;
 
-  //       +----------------------( parte iniziale della stringa )
-  //       |
-  //       |    +-----------------( considera l'eventuale presenza di spazi iniziali )
-  //       |    |
-  //       |    |                         +----( elenco comandi possibili)
-  //       |    |                         |
-  //       | /--+--\ /--------------------^------------------------------------------------------\ 
-
+  /* regole di estrazione dei comandi */
   regex r("^([ ]{0,}((ls)|(cp)|(grep)|(format)|(edlin)|(rm)|(mv)|(exit)|(cls)|(ifup)|(help)|(cat)))");
 
   do
@@ -342,7 +335,7 @@ boolean shell::mv(string __cmd__)
   char *cSwitch;
   //--------------------|--------------------------------
   int iIndex, iMax, iPrec;
-  int iSize = 4;
+  // int iSize = 4;
   //--------------------|--------------------------------
   smatch result, result0, result1, result2;
   //--------------------|--------------------------------
@@ -355,6 +348,7 @@ boolean shell::mv(string __cmd__)
   sSuc = "";
   sRow = "";
   iIndex = 0;
+  iPrec = 0;
 
   try
   {
